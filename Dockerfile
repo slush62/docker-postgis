@@ -1,8 +1,8 @@
 #--------- Generic stuff all our Dockerfiles should start with so we get caching ------------
+FROM debian:buster-slim
 ARG DISTRO=debian
 ARG IMAGE_VERSION=buster
 ARG IMAGE_VARIANT=-slim
-FROM $DISTRO:$IMAGE_VERSION$IMAGE_VARIANT
 MAINTAINER Tim Sutton<tim@kartoza.com>
 
 # Reset ARG for version
@@ -42,7 +42,8 @@ RUN set -eux \
     && apt-get -y --no-install-recommends install postgresql-client-12 \
         postgresql-common postgresql-12 postgresql-12-postgis-3 \
         netcat postgresql-12-ogr-fdw postgresql-12-postgis-3-scripts \
-        postgresql-12-cron postgresql-plpython3-12 postgresql-12-pgrouting \
+        postgresql-12-cron postgresql-plpython3-12 \
+        postgresql-12-pgrouting postgresql-12-pointcloud \
     && apt-get -y --purge autoremove \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
