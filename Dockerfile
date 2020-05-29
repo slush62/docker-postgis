@@ -33,6 +33,11 @@ RUN update-locale ${LANG}
 
 #-------------Application Specific Stuff ----------------------------------------------------
 
+# RUN groupadd -g 5432 postgres
+# RUN useradd -u 5432 -g postgres -d /home/postgres -s /bin/bash postgres 
+# RUN mkdir -p /opt/postgres/data
+# RUN chown -R postgres:postgres /opt/postgres/data
+
 # We add postgis as well to prevent build errors (that we dont see on local builds)
 # on docker hub e.g.
 # The following packages have unmet dependencies:
