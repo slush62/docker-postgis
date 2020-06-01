@@ -4,6 +4,8 @@ ARG DISTRO=debian
 ARG IMAGE_VERSION=buster
 ARG IMAGE_VARIANT=-slim
 MAINTAINER Tim Sutton<tim@kartoza.com>
+ENV DATADIR="/opt/postgres/data"
+ENV XFERDIR="/opt/xfer"
 
 # Reset ARG for version
 ARG IMAGE_VERSION
@@ -18,6 +20,8 @@ RUN set -eux \
     && apt-get -y --purge autoremove \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p $DATADIR \
+    && mkdir -p $XFERDIR \
     && dpkg-divert --local --rename --add /sbin/initctl
 
 # Generating locales takes a long time. Utilize caching by runnig it by itself
