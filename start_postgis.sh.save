@@ -1,0 +1,19 @@
+# -v /home/docker/postgres:/var/lib/postgresql:Z \
+# docker run -it --restart=always -d --name=postgis --network=geoswarm \
+docker run -it --rm --name=postgis --network=geoswarm \
+-e POSTGRES_USER=geoserver -e POSTGRES_PASS=geoserver \
+-e REPLICATION_USER=replicator -e REPLICATION_PASS=replicator \
+-e POSTGRES_DBNAME=geoserver -e ALLOW_IP_RANGE=0.0.0.0/0 \
+-e POSTGRES_MULTIPLE_EXTENSIONS=postgis,hstore,postgis_topology,postgis_raster,pgrouting,pointcloud \
+-e SHARED_PRELOAD_LIBRARIES='pg_cron' \
+-e POSTGRES_TEMPLATE_EXTENSIONS=true \
+-e ARCHIVE_MODE=on \
+-e ARCHIVE_COMMAND="test ! -f /opt/archivedir/%f && cp %p /opt/archivedir/%f" \
+-e ARCHIVE_CLEANUP_COMMAND="pg_archivecleanup /opt/archivedir %r" \
+-e RESTORE_COMMAND='cp /opt/archivedir/%f "%p"' \
+-e WAL_LEVEL=replica \
+-e EXTRA_CONF="log_destination = 'stderr'\nlogging_collector = on" \
+-e DATADIR:/opt/postgres/data \
+-v /home/docker/postgis:/opt/postgres/data:Z \
+-v /home/docker/postgis-backup:/opt/xfer/backup:Z \
+-p 15432:5432 docker/postgis

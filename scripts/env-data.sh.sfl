@@ -4,7 +4,7 @@ DEFAULT_DATADIR="/var/lib/postgresql/12/main"
 ROOT_CONF="/etc/postgresql/12/main"
 PG_ENV="$ROOT_CONF/environment"
 CONF="$ROOT_CONF/postgresql.conf"
-# WAL_ARCHIVE="/opt/archivedir"
+WAL_ARCHIVE="/opt/archivedir"
 RECOVERY_CONF="$ROOT_CONF/recovery.conf"
 POSTGRES="/usr/lib/postgresql/12/bin/postgres"
 INITDB="/usr/lib/postgresql/12/bin/initdb"
@@ -103,7 +103,7 @@ if [ -z "${REPLICATE_PORT}" ]; then
 fi
 echo "REPLICATE_PORT: ${REPLICATE_PORT}"
 if [ -z "${DESTROY_DATABASE_ON_RESTART}" ]; then
-	DESTROY_DATABASE_ON_RESTART=true
+	DESTROY_DATABASE_ON_RESTART=false
 fi
 echo "DESTROY_DATABASE_ON_RESTART: ${DESTROY_DATABASE_ON_RESTART}"
 if [ -z "${PG_MAX_WAL_SENDERS}" ]; then
@@ -125,11 +125,6 @@ if [ -z "${MAINTAINANCE_WORKERS}" ]; then
 fi
 echo "MAINTAINANCE_WORKERS: ${MAINTAINANCE_WORKERS}"
 
-if [ -z "${WAL_ARCHIVE}" ]; then
-  WAL_ARCHIVE="/opt/archivedir"
-fi
-echo "WAL_ARCHIVE: ${WAL_ARCHIVE}"
-
 if [ -z "${ARCHIVE_MODE}" ]; then
   # https://www.postgresql.org/docs/12/runtime-config-wal.html
   ARCHIVE_MODE=off
@@ -138,13 +133,13 @@ echo "ARCHIVE_MODE: ${ARCHIVE_MODE}"
 
 if [ -z "${ARCHIVE_COMMAND}" ]; then
   # https://www.postgresql.org/docs/12/continuous-archiving.html#BACKUP-ARCHIVING-WAL
-  ARCHIVE_COMMAND="test ! -f ${WAL_ARCHIVE}/%f && cp ${DATADIR}/%p ${WAL_ARCHIVE}/%f && chmod 777 ${WAL_ARCHIVE}/%f"
+  ARCHIVE_COMMAND="test ! -f ${WAL_ARCHIVE}/%f && cp %p ${WAL_ARCHIVE}/%f"
 fi
 echo "ARCHIVE_COMMAND: ${ARCHIVE_COMMAND}"
 
 if [ -z "${RESTORE_COMMAND}" ]; then
   # https://www.postgresql.org/docs/12/runtime-config-wal.html
-  RESTORE_COMMAND="cp ${WAL_ARCHIVE}/%f \"${DATADIR}/%p\""
+  RESTORE_COMMAND="cp ${WAL_ARCHIVE}/%f \"%p\""
 fi
 echo "RESTORE_COMMAND: ${RESTORE_COMMAND}"
 
