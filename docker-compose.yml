@@ -1,45 +1,65 @@
 # docker-compose build
 version: '2.1'
-volumes:
-  dbbackups:
-  postgis-data:
 
 services:
 
-  db:
-    image: kartoza/postgis:12.0
-    volumes:
-      - postgis-data:/var/lib/postgresql
-      - dbbackups:/backups
-    environment:
-      # If you need to create multiple database you can add coma separated databases eg gis,data
-      - POSTGRES_DB=gis
-      - POSTGRES_USER=docker
-      - POSTGRES_PASS=docker
-      - ALLOW_IP_RANGE=0.0.0.0/0
-      # Add extensions you need to be enabled by default in the DB. Default are the five specified below
-      - POSTGRES_MULTIPLE_EXTENSIONS=postgis,hstore,postgis_topology,postgis_raster,pgrouting
-    ports:
-      - 25432:5432
-    restart: on-failure
-    healthcheck:
-      test: "exit 0"
+    postgis:
+        image: docker/postgis
+        build: ./docker-postgis
+        hostname: postgis
+        networks: 
+            - geoswarm
+        volumes:
+            - /home/docker/postgis:/opt/postgres/data:Z
+            - /home/docker/postgis-backup:/opt/xfer/backup:Z
+            - /home/docker/xfer/pgarchive:/opt/xfer/archivedir:Z
+        environment:
+            - POSTGRES_USER=geoserver
+            - POSTGRES_PASS=geoserver
+            - REPLICATION_USER=replicator
+            - REPLICATION_PASS=replicator
+            - POSTGRES_DBNAME=geoserver
+            - ALLOW_IP_RANGE=0.0.0.0/0
+            - DATADIR=/opt/postgres/data
+            - POSTGRES_MULTIPLE_EXTENSIONS=postgis,hstore,postgis_topology,postgis_raster,pgrouting,pointcloud
+            - POSTGRES_TEMPLATE_EXTENSIONS=true
+            - ARCHIVE_MODE=on
+            - WAL_ARCHIVE=/opt/xfer/archivedir
+        ports:
+            - 15432:5432
+        restart: on-failure
+        healthcheck:
+            test: "exit 0"
 
-  dbbackups:
-    image: kartoza/pg-backup:12.0
-    hostname: pg-backups
-    volumes:
-      - dbbackups:/backups
-    links:
-      - db:db
-    environment:
-      - DUMPPREFIX=PG_db
-      - POSTGRES_USER=docker
-      - POSTGRES_PASS=docker
-      - POSTGRES_PORT=5432
-      - POSTGRES_HOST=db
-      - POSTGRES_DBNAME=gis
-    restart: on-failure
-    depends_on:
-      db:
-        condition: service_healthy
+    postgis-slave:
+        image: docker/postgis
+        hostname: postgis-slave
+        networks: 
+            - geoswarm
+        volumes:
+            - /home/docker/postgis-backup:/opt/postgres/data:Z
+            - /home/docker/xfer/pgarchive:/opt/xfer/archivedir:Z
+        environment:
+            - REPLICATE_FROM=postgis
+            - ALLOW_IP_RANGE=0.0.0.0/0
+            - DATADIR=/opt/postgres/data
+            - WAL_ARCHIVE=/opt/xfer/archivedir
+            - DESTROY_DATABASE_ON_RESTART=False
+        ports:
+            - 15433:5432
+        depends_on:
+            postgis:
+                condition: service_healthy
+        restart: on-failure
+        healthcheck:
+            test: "exit 0"
+
+networks:
+    geoswarm:
+        name: geoswarm
+        driver: bridge
+        ipam:
+            driver: default
+            config:
+                - subnet: 172.0.20.0/24
+                  gateway: 172.0.20.1
