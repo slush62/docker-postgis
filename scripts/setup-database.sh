@@ -8,10 +8,10 @@ if [[ -z "$(ls -A ${DATADIR} 2> /dev/null)" || "${RECREATE_DATADIR}" == 'TRUE' ]
     # Only attempt reinitializations if ${RECREATE_DATADIR} is true
     # No Replicate From settings. Assume that this is a master database.
     # Initialise db
-#    echo "Setting UID for postgres"
-#    usermod -u 5432 postgres
-#    echo "Setting GID for postgres"
-#    groupmod -g 5432 postgres
+    echo "Setting UID for postgres"
+    usermod -u 5432 postgres
+    echo "Setting GID for postgres"
+    groupmod -g 5432 postgres
     echo "Initializing Postgres Database at ${DATADIR}"
     mkdir -p ${DATADIR}
     rm -rf ${DATADIR}/*
@@ -25,8 +25,8 @@ fi;
 
 # Set proper permissions
 # needs to be done as root:
-# usermod -u 5432 postgres
-# groupmod -g 5432 postgres
+usermod -u 5432 postgres
+groupmod -g 5432 postgres
 chown -R postgres:postgres ${DATADIR}
 chmod -R 750 ${DATADIR}
 
